@@ -1,4 +1,7 @@
 #!/bin/sh
+#
+# Trigger a pipeline job
+#
 set -eu
 
 if [ -z "${GIT_BRANCH:-}" ]; then
@@ -6,5 +9,5 @@ if [ -z "${GIT_BRANCH:-}" ]; then
 fi
 
 exec aws sns publish \
-    --topic-arn "$GITOPS4AWS_TOPIC_ARN" \
-    --message "{\"project\": \"$GITOPS4AWS_PROJECT\", \"branch\": \"$GIT_BRANCH\"}"
+    --topic-arn "$IWOMPINAWS_TOPIC_ARN" \
+    --message "{\"project\": \"$IWOMPINAWS_PROJECT\", \"branch\": \"$GIT_BRANCH\"}"

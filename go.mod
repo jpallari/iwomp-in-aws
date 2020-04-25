@@ -1,4 +1,4 @@
-module github.com/Lepovirta/gitops4aws
+module github.com/Lepovirta/iwomp-in-aws
 
 go 1.13
 

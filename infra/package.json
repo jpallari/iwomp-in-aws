@@ -1,8 +1,8 @@
 {
-  "name": "gitops4aws",
+  "name": "iwomp-in-aws",
   "version": "0.1.0",
   "bin": {
-    "gitops4aws": "bin/gitops4aws.js"
+    "iwomp-in-aws": "bin/iwomp-in-aws.js"
   },
   "scripts": {
     "build": "tsc",

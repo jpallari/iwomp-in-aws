@@ -8,23 +8,23 @@ import * as lambdaES from '@aws-cdk/aws-lambda-event-sources';
 import * as logs from '@aws-cdk/aws-logs';
 import * as sns from '@aws-cdk/aws-sns';
 
-interface GitOpsProps {
+interface IwompProps {
   topicDisplayName?: string,
   configPath?: string,
   ecrRepoName?: string,
   workerPolicies: iam.IManagedPolicy[],
 }
 
-export class GitOpsStack extends cdk.Stack {
+export class IwompStack extends cdk.Stack {
   launchUser: iam.IUser;
   inputTopic: sns.ITopic;
   containerRepo: ecr.IRepository;
 
-  constructor(scope: cdk.Construct, id: string, gitOpsProps: GitOpsProps, props?: cdk.StackProps) {
+  constructor(scope: cdk.Construct, id: string, iwompProps: IwompProps, props?: cdk.StackProps) {
     super(scope, id, props);
     
     // Default values for props
-    const configPath = gitOpsProps.configPath || 'gitops4aws';
+    const configPath = iwompProps.configPath || 'iwomp-in-aws';
     const configPathArn = cdk.Arn.format({
       service: 'ssm',
       resource: `parameter/${configPath}/*`
@@ -35,13 +35,13 @@ export class GitOpsStack extends cdk.Stack {
 
     // Queue for incoming jobs
     this.inputTopic = new sns.Topic(this, 'topic', {
-      displayName: gitOpsProps.topicDisplayName,
+      displayName: iwompProps.topicDisplayName,
     })
     this.inputTopic.grantPublish(this.launchUser);
 
     // Repository for the CD worker container image
     const containerImageRepo = new ecr.Repository(this, 'repo', {
-      repositoryName: gitOpsProps.ecrRepoName,
+      repositoryName: iwompProps.ecrRepoName,
     });
 
     // CD worker job
@@ -50,11 +50,11 @@ export class GitOpsStack extends cdk.Stack {
         version: '0.2',
         phases: {
           build: {
-            commands: ['gitops4aws'],
+            commands: ['iwomp-in-aws'],
           },
         },
       }),
-      description: 'gitops4aws worker',
+      description: 'iwomp-in-aws worker',
       environment: {
         buildImage: codebuild.LinuxBuildImage.fromEcrRepository(containerImageRepo),
         computeType: codebuild.ComputeType.SMALL,
@@ -68,7 +68,7 @@ export class GitOpsStack extends cdk.Stack {
       resources: [configPathArn],
       actions: ['ssm:GetParameter'],
     }));
-    gitOpsProps.workerPolicies.forEach((policy) => {
+    iwompProps.workerPolicies.forEach((policy) => {
       worker.role?.addManagedPolicy(policy);
     });
 

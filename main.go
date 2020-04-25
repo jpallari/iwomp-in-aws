@@ -19,7 +19,7 @@ import (
 
 type appConfig struct {
 	WorkDir     string `default:"."`
-	ConfigPath  string `default:"gitops4aws"`
+	ConfigPath  string `default:"iwomp-in-aws"`
 	ProjectName string `required:"true"`
 	GitBranch   string `required:"true"`
 	Cleanup     bool   `default:"false"`
@@ -120,7 +120,7 @@ func (c *cdJobConfig) run(appConf *appConfig) error {
 
 func main() {
 	if err := mainWithErr(); err != nil {
-		log.Fatalf("gitops4aws: %s", err)
+		log.Fatalf("iwomp-in-aws: %s", err)
 	}
 }
 

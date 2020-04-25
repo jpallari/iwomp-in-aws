@@ -12,6 +12,6 @@ if hash podman 2>/dev/null; then
     DOCKER_CMD="podman"
 fi
 ECR_HOST="$("$SCRIPT_DIR/ecr_host.sh")"
-IMAGE_TAG="$ECR_HOST/${1:-gitops4aws}"
+IMAGE_TAG="$ECR_HOST/${1:-iwomp-in-aws}"
 
 "$DOCKER_CMD" build -t "$IMAGE_TAG" .

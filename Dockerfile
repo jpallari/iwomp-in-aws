@@ -1,5 +1,5 @@
 #
-# Build step for the gitops4aws utility
+# Build step for the worker utility
 # 
 FROM golang:1.14 as builder
 
@@ -11,7 +11,7 @@ RUN go mod download
 
 # Build the app
 COPY main.go ./
-RUN CGO_ENABLED=0 go build -o gitops4aws
+RUN CGO_ENABLED=0 go build -o iwomp-in-aws
 
 #
 # Final container for the app
@@ -33,5 +33,5 @@ USER cdk:cdk
 WORKDIR /project
 
 # Runner script
-COPY --from=builder /project/gitops4aws /usr/bin/gitops4aws
-ENTRYPOINT [ "gitops4aws" ]
+COPY --from=builder /project/iwomp-in-aws /usr/bin/iwomp-in-aws
+ENTRYPOINT [ "iwomp-in-aws" ]

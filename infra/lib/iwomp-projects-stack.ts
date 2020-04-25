@@ -1,10 +1,10 @@
 import * as cdk from '@aws-cdk/core';
 import * as ssm from '@aws-cdk/aws-ssm';
 
-export class GitOpsProjectsStack extends cdk.Stack {
+export class IwompProjectsStack extends cdk.Stack {
     constructor(scope: cdk.Construct, id: string, configPath?: string, props?: cdk.StackProps) {
         super(scope, id, props);
-        configPath = configPath || 'gitops4aws';
+        configPath = configPath || 'iwomp-in-aws';
 
         new ssm.StringParameter(this, 'demo', {
             parameterName: `/${configPath}/demo`,
