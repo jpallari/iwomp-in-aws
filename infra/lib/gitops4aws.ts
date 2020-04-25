@@ -8,22 +8,23 @@ import * as lambdaES from '@aws-cdk/aws-lambda-event-sources';
 import * as logs from '@aws-cdk/aws-logs';
 import * as sns from '@aws-cdk/aws-sns';
 
-interface CdkCdProps {
+interface GitOpsProps {
   topicDisplayName?: string,
   configPath?: string,
   ecrRepoName?: string,
+  workerPermissions: iam.PolicyStatementProps[],
 }
 
-export class CdkCdStack extends cdk.Stack {
+export class GitOpsStack extends cdk.Stack {
   launchUser: iam.IUser;
   inputTopic: sns.ITopic;
   containerRepo: ecr.IRepository;
 
-  constructor(scope: cdk.Construct, id: string, cdProps: CdkCdProps, props?: cdk.StackProps) {
+  constructor(scope: cdk.Construct, id: string, gitOpsProps: GitOpsProps, props?: cdk.StackProps) {
     super(scope, id, props);
     
     // Default values for props
-    const configPath = cdProps.configPath || 'cdk-cd';
+    const configPath = gitOpsProps.configPath || 'gitops4aws';
     const configPathArn = cdk.Arn.format({
       service: 'ssm',
       resource: `parameter/${configPath}/*`
@@ -34,13 +35,13 @@ export class CdkCdStack extends cdk.Stack {
 
     // Queue for incoming jobs
     this.inputTopic = new sns.Topic(this, 'topic', {
-      displayName: cdProps.topicDisplayName,
+      displayName: gitOpsProps.topicDisplayName,
     })
     this.inputTopic.grantPublish(this.launchUser);
 
     // Repository for the CD worker container image
     const containerImageRepo = new ecr.Repository(this, 'repo', {
-      repositoryName: cdProps.ecrRepoName,
+      repositoryName: gitOpsProps.ecrRepoName,
     });
 
     // CD worker job
@@ -49,11 +50,11 @@ export class CdkCdStack extends cdk.Stack {
         version: '0.2',
         phases: {
           build: {
-            commands: ['aws-cdk-cd'],
+            commands: ['gitops4aws'],
           },
         },
       }),
-      description: 'CDK CD worker job',
+      description: 'gitops4aws worker',
       environment: {
         buildImage: codebuild.LinuxBuildImage.fromEcrRepository(containerImageRepo),
         computeType: codebuild.ComputeType.SMALL,
@@ -67,11 +68,9 @@ export class CdkCdStack extends cdk.Stack {
       resources: [configPathArn],
       actions: ['ssm:GetParameter'],
     }));
-    worker.addToRolePolicy(new iam.PolicyStatement({
-      effect: iam.Effect.ALLOW,
-      resources: ['*'],
-      actions: ['sqs:*', 'cloudformation:*'] // Allowing CD to manage SQS as a demo
-    }));
+    gitOpsProps.workerPermissions.forEach((permission) => {
+      worker.addToRolePolicy(new iam.PolicyStatement(permission));
+    });
 
     // CD worker launcher
     const launcher = new lambda.Function(this, 'launcher', {

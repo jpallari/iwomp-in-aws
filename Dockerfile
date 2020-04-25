@@ -1,5 +1,5 @@
 #
-# Build step for the aws-cdk-cd utility
+# Build step for the gitops4aws utility
 # 
 FROM golang:1.14 as builder
 
@@ -11,7 +11,7 @@ RUN go mod download
 
 # Build the app
 COPY main.go ./
-RUN CGO_ENABLED=0 go build -o aws-cdk-cd
+RUN CGO_ENABLED=0 go build -o gitops4aws
 
 #
 # Final container for the app
@@ -33,5 +33,5 @@ USER cdk:cdk
 WORKDIR /project
 
 # Runner script
-COPY --from=builder /project/aws-cdk-cd /usr/bin/aws-cdk-cd
-ENTRYPOINT [ "aws-cdk-cd" ]
+COPY --from=builder /project/gitops4aws /usr/bin/gitops4aws
+ENTRYPOINT [ "gitops4aws" ]

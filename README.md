@@ -1,4 +1,4 @@
-# aws-cdk-cd
+# gitops4aws
 
 This is a blank project for TypeScript development with CDK.
 

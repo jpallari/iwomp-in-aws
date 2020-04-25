@@ -1,8 +1,8 @@
 {
-  "name": "aws-cdk-cd",
+  "name": "gitops4aws",
   "version": "0.1.0",
   "bin": {
-    "aws-cdk-cd": "bin/aws-cdk-cd.js"
+    "gitops4aws": "bin/gitops4aws.js"
   },
   "scripts": {
     "build": "tsc",

@@ -1,4 +1,4 @@
-module github.com/Lepovirta/aws-cdk-cd
+module github.com/Lepovirta/gitops4aws
 
 go 1.13
 

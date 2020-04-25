@@ -19,7 +19,7 @@ import (
 
 type appConfig struct {
 	WorkDir     string `default:"."`
-	ConfigPath  string `default:"cdk-cd"`
+	ConfigPath  string `default:"gitops4aws"`
 	ProjectName string `required:"true"`
 	GitBranch   string `required:"true"`
 	Cleanup     bool   `default:"false"`
@@ -44,6 +44,7 @@ type cdJobConfig struct {
 	BasicUsername string `json:"basicUsername"`
 	BasicPassword string `json:"basicPassword"`
 	DeployDir     string `json:"deployDir"`
+	Command 	  string `json:"command"`
 }
 
 func (c *cdJobConfig) load(ac *appConfig, sess *session.Session) error {
@@ -109,9 +110,17 @@ func (c *cdJobConfig) gitAuth() gitTransport.AuthMethod {
 	return nil
 }
 
+func (c *cdJobConfig) run(appConf *appConfig) error {
+	cmd := exec.Command(c.Command, appConf.GitBranch)
+	cmd.Dir = c.DeployDir
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	return cmd.Run()
+}
+
 func main() {
 	if err := mainWithErr(); err != nil {
-		log.Fatalf("aws-cdk-cd fail: %s", err)
+		log.Fatalf("gitops4aws: %s", err)
 	}
 }
 
@@ -140,10 +149,7 @@ func mainWithErr() error {
 	}
 
 	// Setup env and run CDK
-	if err := setupEnv(&cdJobConf); err != nil {
-		return err
-	}
-	if err := runCDK(&appConf, &cdJobConf); err != nil {
+	if err := cdJobConf.run(&appConf); err != nil {
 		return err
 	}
 
@@ -151,6 +157,8 @@ func mainWithErr() error {
 }
 
 func cloneRepository(appConf *appConfig, cdJobConf *cdJobConfig) error {
+	log.Printf("cloning repo %s branch %s", cdJobConf.GitURL, appConf.GitBranch)
+
 	_, err := git.PlainClone(appConf.WorkDir, false, &git.CloneOptions{
 		URL:           cdJobConf.GitURL,
 		Auth:          cdJobConf.gitAuth(),
@@ -160,29 +168,4 @@ func cloneRepository(appConf *appConfig, cdJobConf *cdJobConfig) error {
 		Depth:         1,
 	})
 	return err
-}
-
-func setupEnv(cdJobConf *cdJobConfig) error {
-	return command(cdJobConf.DeployDir, "npm", "install").Run()
-}
-
-func runCDK(appConf *appConfig, cdJobConf *cdJobConfig) error {
-	// Changes are only deployed when the given branch matches the project deploy branch
-	if appConf.GitBranch == cdJobConf.GitBranch {
-		return command(
-			cdJobConf.DeployDir,
-			"cdk", "deploy", "--require-approval=never", "*",
-		).Run()
-	}
-
-	// ...otherwise we just print a diff
-	return command(cdJobConf.DeployDir, "cdk", "diff", "*").Run()
-}
-
-func command(directory string, name string, params ...string) *exec.Cmd {
-	cmd := exec.Command(name, params...)
-	cmd.Dir = directory
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	return cmd
 }

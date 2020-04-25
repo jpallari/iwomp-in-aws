@@ -1,3 +1,3 @@
 {
-  "app": "npx ts-node bin/aws-cdk-cd.ts"
+  "app": "npx ts-node bin/gitops4aws.ts"
 }
