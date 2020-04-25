@@ -1,4 +1,4 @@
-# Welcome to your CDK TypeScript project!
+# aws-cdk-cd
 
 This is a blank project for TypeScript development with CDK.
 
