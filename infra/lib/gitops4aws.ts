@@ -12,7 +12,7 @@ interface GitOpsProps {
   topicDisplayName?: string,
   configPath?: string,
   ecrRepoName?: string,
-  workerPermissions: iam.PolicyStatementProps[],
+  workerPolicies: iam.IManagedPolicy[],
 }
 
 export class GitOpsStack extends cdk.Stack {
@@ -68,8 +68,8 @@ export class GitOpsStack extends cdk.Stack {
       resources: [configPathArn],
       actions: ['ssm:GetParameter'],
     }));
-    gitOpsProps.workerPermissions.forEach((permission) => {
-      worker.addToRolePolicy(new iam.PolicyStatement(permission));
+    gitOpsProps.workerPolicies.forEach((policy) => {
+      worker.role?.addManagedPolicy(policy);
     });
 
     // CD worker launcher
