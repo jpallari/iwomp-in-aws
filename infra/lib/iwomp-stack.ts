@@ -9,42 +9,37 @@ import * as logs from '@aws-cdk/aws-logs';
 import * as sns from '@aws-cdk/aws-sns';
 
 interface IwompProps {
-  topicDisplayName?: string,
+  jobTopicDisplayName?: string,
   configPath?: string,
   ecrRepoName?: string,
   workerPolicies: iam.IManagedPolicy[],
 }
 
 export class IwompStack extends cdk.Stack {
-  launchUser: iam.IUser;
-  inputTopic: sns.ITopic;
-  containerRepo: ecr.IRepository;
-
   constructor(scope: cdk.Construct, id: string, iwompProps: IwompProps, props?: cdk.StackProps) {
     super(scope, id, props);
     
-    // Default values for props
     const configPath = iwompProps.configPath || 'iwomp-in-aws';
-    const configPathArn = cdk.Arn.format({
+    const configPathArn = this.formatArn({
       service: 'ssm',
       resource: `parameter/${configPath}/*`
-    }, this);
+    });
 
     // User that can queue jobs
-    this.launchUser = new iam.User(this, 'user');
+    const launchUser = new iam.User(this, 'user');
 
     // Queue for incoming jobs
-    this.inputTopic = new sns.Topic(this, 'topic', {
-      displayName: iwompProps.topicDisplayName,
+    const jobTopic = new sns.Topic(this, 'topic', {
+      displayName: iwompProps.jobTopicDisplayName,
     })
-    this.inputTopic.grantPublish(this.launchUser);
+    jobTopic.grantPublish(launchUser);
 
-    // Repository for the CD worker container image
+    // Repository for the worker container image
     const containerImageRepo = new ecr.Repository(this, 'repo', {
       repositoryName: iwompProps.ecrRepoName,
     });
 
-    // CD worker job
+    // Worker job
     const worker = new codebuild.Project(this, 'worker', {
       buildSpec: codebuild.BuildSpec.fromObject({
         version: '0.2',
@@ -72,13 +67,13 @@ export class IwompStack extends cdk.Stack {
       worker.role?.addManagedPolicy(policy);
     });
 
-    // CD worker launcher
+    // Worker launcher
     const launcher = new lambda.Function(this, 'launcher', {
       runtime: lambda.Runtime.NODEJS_12_X,
       handler: 'index.handler',
       code: lambda.Code.fromAsset(path.join(__dirname, '..', 'lambda')),
       deadLetterQueueEnabled: false,
-      description: "CDK CD launcher",
+      description: "iwomp-in-aws launcher",
       environment: {
         'CONFIGPATH': configPath,
         'WORKER_PROJECT_NAME': worker.projectName,
@@ -89,7 +84,7 @@ export class IwompStack extends cdk.Stack {
       retryAttempts: 2,
       timeout: cdk.Duration.seconds(5),
     });
-    launcher.addEventSource(new lambdaES.SnsEventSource(this.inputTopic));
+    launcher.addEventSource(new lambdaES.SnsEventSource(jobTopic));
     launcher.addToRolePolicy(new iam.PolicyStatement({
       effect: iam.Effect.ALLOW,
       resources: [worker.projectArn],
@@ -100,5 +95,19 @@ export class IwompStack extends cdk.Stack {
       resources: [configPathArn],
       actions: ['ssm:GetParameter'],
     }));
+
+    // Outputs
+    new cdk.CfnOutput(this, 'LaunchUserArn', {
+      value: launchUser.userArn,
+      description: 'ARN of the user that can launch jobs',
+    });
+    new cdk.CfnOutput(this, 'JobTopicArn', {
+      value: jobTopic.topicArn,
+      description: 'ARN of the topic for launching jobs',
+    });
+    new cdk.CfnOutput(this, 'WorkerEcrUri', {
+      value: containerImageRepo.repositoryUri,
+      description: 'URI of the worker container image ECR repository',
+    });
   }
 }
