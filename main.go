@@ -1,3 +1,4 @@
+// A program for executing scripts on Git repos based on data in SSM.
 package main
 
 import (
@@ -37,7 +38,7 @@ func (c *appConfig) load() error {
 	return envconfig.Process("", c)
 }
 
-type cdJobConfig struct {
+type projectConfig struct {
 	GitURL        string `json:"gitUrl"`
 	GitBranch     string `json:"gitBranch"`
 	AuthToken     string `json:"authToken"`
@@ -47,7 +48,7 @@ type cdJobConfig struct {
 	Command 	  string `json:"command"`
 }
 
-func (c *cdJobConfig) load(ac *appConfig, sess *session.Session) error {
+func (c *projectConfig) load(ac *appConfig, sess *session.Session) error {
 	ssmSVC := ssm.New(sess)
 
 	// Load defaults first
@@ -87,14 +88,19 @@ func (c *cdJobConfig) load(ac *appConfig, sess *session.Session) error {
 		c.GitBranch = "master"
 	}
 
+	// Validate
+	if c.Command == "" {
+		return fmt.Errorf("no command specified for project %s", ac.ProjectName)
+	}
+
 	return nil
 }
 
-func (c *cdJobConfig) loadFromParameter(parameter *ssm.Parameter) error {
+func (c *projectConfig) loadFromParameter(parameter *ssm.Parameter) error {
 	return json.Unmarshal([]byte(*parameter.Value), c)
 }
 
-func (c *cdJobConfig) gitAuth() gitTransport.AuthMethod {
+func (c *projectConfig) gitAuth() gitTransport.AuthMethod {
 	if c.AuthToken != "" {
 		return &gitHTTP.TokenAuth{
 			Token: c.AuthToken,
@@ -110,7 +116,7 @@ func (c *cdJobConfig) gitAuth() gitTransport.AuthMethod {
 	return nil
 }
 
-func (c *cdJobConfig) run(appConf *appConfig) error {
+func (c *projectConfig) run(appConf *appConfig) error {
 	cmd := exec.Command(c.Command, appConf.GitBranch)
 	cmd.Dir = c.DeployDir
 	cmd.Stdout = os.Stdout
@@ -137,31 +143,27 @@ func mainWithErr() error {
 		return err
 	}
 
-	// Load config for the CD job
-	var cdJobConf cdJobConfig
-	if err := cdJobConf.load(&appConf, sess); err != nil {
+	// Load config for the project
+	var projectConf projectConfig
+	if err := projectConf.load(&appConf, sess); err != nil {
 		return err
 	}
 
-	// Clone repo
-	if err := cloneRepository(&appConf, &cdJobConf); err != nil {
+	// Clone repo for the project based on app config
+	if err := cloneRepository(&appConf, &projectConf); err != nil {
 		return err
 	}
 
-	// Setup env and run CDK
-	if err := cdJobConf.run(&appConf); err != nil {
-		return err
-	}
-
-	return nil
+	// Run the project command
+	return projectConf.run(&appConf)
 }
 
-func cloneRepository(appConf *appConfig, cdJobConf *cdJobConfig) error {
-	log.Printf("cloning repo %s branch %s", cdJobConf.GitURL, appConf.GitBranch)
+func cloneRepository(appConf *appConfig, projectConf *projectConfig) error {
+	log.Printf("cloning repo %s branch %s", projectConf.GitURL, appConf.GitBranch)
 
 	_, err := git.PlainClone(appConf.WorkDir, false, &git.CloneOptions{
-		URL:           cdJobConf.GitURL,
-		Auth:          cdJobConf.gitAuth(),
+		URL:           projectConf.GitURL,
+		Auth:          projectConf.gitAuth(),
 		ReferenceName: gitPlumbing.NewBranchReferenceName(appConf.GitBranch),
 		SingleBranch:  true,
 		Progress:      os.Stdout,
