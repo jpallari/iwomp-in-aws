@@ -2,17 +2,25 @@ import * as cdk from '@aws-cdk/core';
 import * as ssm from '@aws-cdk/aws-ssm';
 
 export class IwompProjectsStack extends cdk.Stack {
+    private configPath: string
+
     constructor(scope: cdk.Construct, id: string, configPath?: string, props?: cdk.StackProps) {
         super(scope, id, props);
-        configPath = configPath || 'iwomp-in-aws';
+        this.configPath = configPath || 'iwomp-in-aws';
 
-        new ssm.StringParameter(this, 'demo', {
-            parameterName: `/${configPath}/demo`,
-            stringValue: JSON.stringify({
-                gitUrl: "https://github.com/Lepovirta/cdk-demo",
-                gitBranch: "master",
-                command: "./deploy.sh",
-            }),
+        this.projectConfig('_default', {
+            gitBranch: "master",
+        });
+        this.projectConfig('demo', {
+            gitUrl: "https://github.com/Lepovirta/cdk-demo",
+            command: "./deploy.sh",
+        });
+    }
+
+    private projectConfig(name: string, config: object): ssm.StringParameter {
+        return new ssm.StringParameter(this, `param-${name}`, {
+            parameterName: `/${this.configPath}/${name}`,
+            stringValue: JSON.stringify(config),
         });
     }
 }
