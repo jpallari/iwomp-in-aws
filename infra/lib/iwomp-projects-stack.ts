@@ -12,7 +12,7 @@ export class IwompProjectsStack extends cdk.Stack {
             gitBranch: "master",
         });
         this.projectConfig('demo', {
-            gitUrl: "https://github.com/Lepovirta/cdk-demo",
+            gitUrl: "https://github.com/jkpl/cdk-demo",
             command: "./deploy.sh",
         });
     }

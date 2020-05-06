@@ -36,7 +36,7 @@ That said, you still need to trust the contents of the Git repository.
 
 This section describes how you can try the pipeline in AWS yourself.
 By default, this will enable one deployable project:
-[Lepovirta/cdk-demo](https://github.com/Lepovirta/cdk-demo/).
+[jkpl/cdk-demo](https://github.com/jkpl/cdk-demo/).
 Feel free to customise any parts to your hearts pleasure.
 
 **WARNING!** This will make changes to your AWS account, so make sure you understand what this project does before you use it.

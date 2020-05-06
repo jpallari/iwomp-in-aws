@@ -1,4 +1,4 @@
-module github.com/Lepovirta/iwomp-in-aws
+module github.com/jkpl/iwomp-in-aws
 
 go 1.13
 
