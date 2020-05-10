@@ -4,6 +4,8 @@
 
 A proof of concept for an AWS hosted Continuous Deployment pipeline that can be triggered from anywhere.
 
+![Architecture diagram](architecture.png)
+
 ## Why?
 
 Sometimes, you want to have your CI hosted on a 3rd party service (e.g. Travis), but you don't trust it enough to manage infrastructure for you.
