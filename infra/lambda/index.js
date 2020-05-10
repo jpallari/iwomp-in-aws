@@ -61,4 +61,5 @@ async function launchWorkerJob(message) {
     };
     const data = await codebuild.startBuild(params).promise();
     console.log(`Job started: ${data.build.id}`);
+    return data;
 }
