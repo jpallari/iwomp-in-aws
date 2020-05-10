@@ -8,9 +8,6 @@ export class IwompProjectsStack extends cdk.Stack {
         super(scope, id, props);
         this.configPath = configPath || 'iwomp-in-aws';
 
-        this.projectConfig('_default', {
-            gitBranch: "master",
-        });
         this.projectConfig('demo', {
             gitUrl: "https://github.com/jkpl/cdk-demo",
             command: "./deploy.sh",

@@ -40,12 +40,11 @@ func (c *appConfig) load() error {
 
 type projectConfig struct {
 	GitURL        string `json:"gitUrl"`
-	GitBranch     string `json:"gitBranch"`
 	AuthToken     string `json:"authToken"`
 	BasicUsername string `json:"basicUsername"`
 	BasicPassword string `json:"basicPassword"`
 	DeployDir     string `json:"deployDir"`
-	Command 	  string `json:"command"`
+	Command       string `json:"command"`
 }
 
 func (c *projectConfig) load(ac *appConfig, sess *session.Session) error {
@@ -83,9 +82,6 @@ func (c *projectConfig) load(ac *appConfig, sess *session.Session) error {
 	// Fill in the gaps
 	if c.DeployDir == "" {
 		c.DeployDir = "."
-	}
-	if c.GitBranch == "" {
-		c.GitBranch = "master"
 	}
 
 	// Validate
