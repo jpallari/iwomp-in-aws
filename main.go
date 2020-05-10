@@ -19,11 +19,9 @@ import (
 )
 
 type appConfig struct {
-	WorkDir     string `default:"."`
 	ConfigPath  string `default:"iwomp-in-aws"`
 	ProjectName string `required:"true"`
 	GitBranch   string `required:"true"`
-	Cleanup     bool   `default:"false"`
 }
 
 func (c *appConfig) defaultPath() string {
@@ -157,7 +155,7 @@ func mainWithErr() error {
 func cloneRepository(appConf *appConfig, projectConf *projectConfig) error {
 	log.Printf("cloning repo %s branch %s", projectConf.GitURL, appConf.GitBranch)
 
-	_, err := git.PlainClone(appConf.WorkDir, false, &git.CloneOptions{
+	_, err := git.PlainClone(".", false, &git.CloneOptions{
 		URL:           projectConf.GitURL,
 		Auth:          projectConf.gitAuth(),
 		ReferenceName: gitPlumbing.NewBranchReferenceName(appConf.GitBranch),
