@@ -83,6 +83,9 @@ func (c *projectConfig) load(ac *appConfig, sess *session.Session) error {
 	}
 
 	// Validate
+	if c.GitURL == "" {
+		return fmt.Errorf("no Git URL specified for project %s", ac.ProjectName)
+	}
 	if c.Command == "" {
 		return fmt.Errorf("no command specified for project %s", ac.ProjectName)
 	}
