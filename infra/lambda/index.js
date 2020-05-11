@@ -28,19 +28,19 @@ function parseMessage(message) {
     if (!json.branch) {
         throw new Error('No branch provided');
     }
-    return json
+    return json;
 }
 
 async function validateProject(project) {
-    const ssmPath = `/${process.env.CONFIGPATH}/${project}`
+    const ssmPath = `/${process.env.CONFIGPATH}/${project}`;
     const params = {
         Name: ssmPath,
         WithDecryption: true
-    }
+    };
     const parameter = await ssm.getParameter(params).promise();
     const json = JSON.parse(parameter.Parameter.Value);
     if (!json.gitUrl) {
-        throw new Error('No Git URL set')
+        throw new Error('No Git URL set');
     }
 }
 

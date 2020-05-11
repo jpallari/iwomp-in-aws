@@ -25,14 +25,10 @@ export class IwompStack extends cdk.Stack {
       resource: `parameter/${configPath}/*`
     });
 
-    // User that can queue jobs
-    const launchUser = new iam.User(this, 'user');
-
     // Queue for incoming jobs
     const jobTopic = new sns.Topic(this, 'topic', {
       displayName: iwompProps.jobTopicDisplayName,
-    })
-    jobTopic.grantPublish(launchUser);
+    });
 
     // Repository for the worker container image
     const containerImageRepo = new ecr.Repository(this, 'repo', {
@@ -89,7 +85,7 @@ export class IwompStack extends cdk.Stack {
       effect: iam.Effect.ALLOW,
       resources: [worker.projectArn],
       actions: ['codebuild:StartBuild']
-    }))
+    }));
     launcher.addToRolePolicy(new iam.PolicyStatement({
       effect: iam.Effect.ALLOW,
       resources: [configPathArn],
@@ -97,10 +93,6 @@ export class IwompStack extends cdk.Stack {
     }));
 
     // Outputs
-    new cdk.CfnOutput(this, 'LaunchUserArn', {
-      value: launchUser.userArn,
-      description: 'ARN of the user that can launch jobs',
-    });
     new cdk.CfnOutput(this, 'JobTopicArn', {
       value: jobTopic.topicArn,
       description: 'ARN of the topic for launching jobs',
