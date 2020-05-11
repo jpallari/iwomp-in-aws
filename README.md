@@ -75,7 +75,7 @@ There's a script in the `bin/` directory to do it:
 ### Triggering a job
 
 A job can be triggered by sending a JSON message to the created SNS topic.
-The script `trigger_job.sh` can help with this.
+The script `./bin/trigger_job.sh` can help with this.
 Let's test it for our `demo` project:
 
 ```
