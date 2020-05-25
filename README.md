@@ -4,6 +4,8 @@
 
 A proof of concept for an AWS hosted Continuous Deployment pipeline that can be triggered from anywhere.
 
+Read more about it in the blog post ["Continuous deployments for AWS infrastructure without trusting a third party CI"](https://medium.com/polarsquad/continuous-deployments-for-aws-infrastructure-without-trusting-a-third-party-ci-c6b140043bb6) ([mirror](https://lepovirta.org/posts/2020-05-20-continuous-deployments-for-aws-infrastructure-without-trusting-a-third-party-ci.html)).
+
 ![Architecture diagram](architecture.png)
 
 ## Why?
